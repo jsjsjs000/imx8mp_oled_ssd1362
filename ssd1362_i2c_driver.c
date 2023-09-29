@@ -177,13 +177,14 @@ bool ssd1362_i2c_driver_update_screen(uint16_t x1, uint16_t x2, uint16_t y1, uin
 
 	uint in, out;
 	uint8_t buffer[1 + OLED_WIDTH];
+	size_t size = (x2 - x1 + 1) * OLED_COLOR_BITS / 8;
 	for (int y = y1; y <= y2; y++)
 	{
 		in = y * OLED_WIDTH * OLED_COLOR_BITS / 8 + x1 * OLED_COLOR_BITS / 8;
 		out = 0;
 		buffer[out++] = OLED_CONTROL_BYTE_DATA_BIT;
-		for (uint x = x1 * OLED_COLOR_BITS / 8; x <= x2 * OLED_COLOR_BITS / 8; x++) // $$ memcpy
-			buffer[out++] = oled_buffer[in++];
+		memcpy(&buffer[out], &oled_buffer[in], size);
+		out += size;
 
 		if (!i2c_task_write_command(buffer, out))
 			return false;
@@ -201,13 +202,6 @@ void ssd1362_i2c_driver_put_pixel(uint16_t x, uint16_t y, uint8_t color)
 	else
 		oled_buffer[i] = (oled_buffer[i] & 0xf0) | color;
 }
-
-// void xchange(uint16_t *a, uint16_t *b)
-// {
-// 	uint16_t tmp = *a;
-// 	*a = *b;
-// 	*b = tmp;
-// }
 
 void ssd1362_i2c_driver_draw_line(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint8_t color)
 {
@@ -261,12 +255,12 @@ void ssd1362_i2c_driver_draw_image(uint8_t *image, size_t image_width, size_t im
 		uint16_t img_x1, uint16_t img_x2, uint16_t img_y1, uint16_t img_y2, uint16_t to_x, uint16_t to_y)
 {
 	uint in, out;
+	size_t size = (img_x2 - img_x1 + 1) * OLED_COLOR_BITS / 8;
 	for (int y = img_y1; y <= img_y2; y++)
 	{
 		in = y * image_width * OLED_COLOR_BITS / 8 + img_x1 * OLED_COLOR_BITS / 8;
 		out = (to_y + y - img_y1) * OLED_WIDTH * OLED_COLOR_BITS / 8 + to_x * OLED_COLOR_BITS / 8;
-		for (int x = img_x1 * OLED_COLOR_BITS / 8; x <= img_x2 * OLED_COLOR_BITS / 8; x++) // $$ memcpy
-			oled_buffer[out++] = Image[in++];
+		memcpy(&oled_buffer[out], &image[in], size);
 	}
 }
 
@@ -283,7 +277,6 @@ void ssd1362_i2c_driver_draw_greyscale(uint16_t x1, uint16_t x2, uint16_t y1, ui
 
 /*
 		todo: $$
-	memcpy
 	logo PCO
 	nie kopiować do bufora przy wysyłaniu I2C - bezpośredi bufor I2C
 	fonty
