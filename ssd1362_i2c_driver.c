@@ -311,7 +311,6 @@ void ssd1362_i2c_driver_draw_string(Font *font, uint16_t x, uint16_t y, uint8_t 
 
 	last_string_x2 = x_;
 	last_string_y2 = y_ + font->Height;
-PRINTF("%d %d  %d %d\r\n", last_string_x1, last_string_x2, last_string_y1, last_string_y2);
 }
 
 void ssd1362_i2c_driver_update_screen_for_last_string(void)
