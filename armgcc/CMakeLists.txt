@@ -59,7 +59,8 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
 	"${ProjDirPath}/../common.h"
 	"${ProjDirPath}/../i2c_task.c"
 	"${ProjDirPath}/../i2c_task.h"
-	"${ProjDirPath}/../image.h"
+	"${ProjDirPath}/../image_ostatnia_wieczerza.h"
+	"${ProjDirPath}/../image_pco.h"
 	"${ProjDirPath}/../ssd1362_i2c_driver.c"
 	"${ProjDirPath}/../ssd1362_i2c_driver.h"
 )

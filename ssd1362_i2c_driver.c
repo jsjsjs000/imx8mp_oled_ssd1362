@@ -12,7 +12,8 @@
 #include <semphr.h>
 
 #include "common.h"
-#include "image.h"
+#include "image_pco.h"
+#include "image_ostatnia_wieczerza.h"
 #include "ssd1362_i2c_driver.h"
 #include "i2c_task.h"
 
@@ -66,16 +67,26 @@ bool ssd1362_i2c_driver_initialize(bool rotate_display_180)
 	vTaskDelay(pdMS_TO_TICKS(OLED_TAF_DELAY_MS));
 
 
-ssd1362_i2c_driver_turn_on_off(true);
 ssd1362_i2c_driver_clear();
 // ssd1362_i2c_driver_fill_color(0x03);
 ssd1362_i2c_driver_update_all_screen();
+ssd1362_i2c_driver_turn_on_off(true);
 
 // ssd1362_i2c_driver_draw_greyscale(0, 128 - 1, 0, 32 - 1);
 // ssd1362_i2c_driver_draw_greyscale(128, 128 + 64 - 1, 32, 32 + 16 - 1);
 
-ssd1362_i2c_driver_draw_image((uint8_t*)Image, Image_width, Image_height, 0, Image_width - 1, 0, Image_height - 1, 0, 0);
-// ssd1362_i2c_driver_draw_image((uint8_t*)Image, Image_width, Image_height, 128, 128 + 128 - 1, 32, 32 + 32 - 1, 64, 16);
+uint16_t imgx = ROUND_TO_2(OLED_WIDTH / 2 - Image_pco_width / 2);
+uint16_t imgy = OLED_HEIGHT / 2 - Image_pco_height / 2;
+for (float opacity = 0.0; opacity <= 1.0 + 0.0001; opacity += 0.125)
+{
+	ssd1362_i2c_driver_draw_image_opacity((uint8_t*)Image_pco, Image_pco_width, Image_pco_height,
+			0, Image_pco_width - 1, 0, Image_pco_height - 1, imgx, imgy, opacity);
+	ssd1362_i2c_driver_update_screen(imgx, imgx + Image_pco_width - 1, imgy, imgy + Image_pco_height - 1);
+	vTaskDelay(pdMS_TO_TICKS(50));
+}
+
+// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_weczerza, Image_ostatnia_weczerza_width, Image_ostatnia_weczerza_height, 0, Image_ostatnia_weczerza_width - 1, 0, Image_ostatnia_weczerza_height - 1, 0, 0);
+// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_weczerza, Image_ostatnia_weczerza_width, Image_ostatnia_weczerza_height, 128, 128 + 128 - 1, 32, 32 + 32 - 1, 64, 16);
 
 // ssd1362_i2c_driver_draw_line(OLED_WIDTH - 1, 0, 0, OLED_HEIGHT - 1, 0x0f);
 // ssd1362_i2c_driver_draw_line(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1, 0x0f);
@@ -83,7 +94,7 @@ ssd1362_i2c_driver_draw_image((uint8_t*)Image, Image_width, Image_height, 0, Ima
 // ssd1362_i2c_driver_draw_line(0, 32 - 1, 0, OLED_HEIGHT - 1, 0x0f);
 // ssd1362_i2c_driver_draw_rectangle(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1, 0x0f);
 
-ssd1362_i2c_driver_update_all_screen();
+// ssd1362_i2c_driver_update_all_screen();
 vTaskDelay(pdMS_TO_TICKS(500));
 
 PRINTF("finish\r\n");
@@ -156,7 +167,7 @@ void ssd1362_i2c_driver_fill_color(uint8_t color)
 bool ssd1362_i2c_driver_set_display_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
 		/// Set column Address, Start column Address, End column Address
-	uint8_t cmd_x[] = { 0x15, (uint8_t)x1, (uint8_t)(x2 * OLED_COLOR_BITS / 8)};
+	uint8_t cmd_x[] = { 0x15, (uint8_t)(x1 * OLED_COLOR_BITS / 8), (uint8_t)(x2 * OLED_COLOR_BITS / 8)};
 	if (!ssd1362_i2c_driver_write_command(cmd_x, sizeof(cmd_x)))
 		return false;
 	
@@ -261,6 +272,28 @@ void ssd1362_i2c_driver_draw_image(uint8_t *image, size_t image_width, size_t im
 		in = y * image_width * OLED_COLOR_BITS / 8 + img_x1 * OLED_COLOR_BITS / 8;
 		out = (to_y + y - img_y1) * OLED_WIDTH * OLED_COLOR_BITS / 8 + to_x * OLED_COLOR_BITS / 8;
 		memcpy(&oled_buffer[out], &image[in], size);
+	}
+}
+
+void ssd1362_i2c_driver_draw_image_opacity(uint8_t *image, size_t image_width, size_t image_height,
+		uint16_t img_x1, uint16_t img_x2, uint16_t img_y1, uint16_t img_y2, uint16_t to_x, uint16_t to_y, float opacity)
+{
+	uint8_t opacity_ = opacity * 16;
+	uint8_t c1, c2;
+	uint in, out;
+	size_t size = (img_x2 - img_x1 + 1) * OLED_COLOR_BITS / 8;
+	for (int y = img_y1; y <= img_y2; y++)
+	{
+		in = y * image_width * OLED_COLOR_BITS / 8 + img_x1 * OLED_COLOR_BITS / 8;
+		out = (to_y + y - img_y1) * OLED_WIDTH * OLED_COLOR_BITS / 8 + to_x * OLED_COLOR_BITS / 8;
+		for (int x = 0; x < size; x++)
+		{
+			c1 = image[in] >> 4;
+			c2 = image[in++] & 0x0f;
+			c1 = c1 * opacity_ / 16;
+			c2 = c2 * opacity_ / 16;
+			oled_buffer[out++] = (c1 << 4) | c2;
+		}
 	}
 }
 

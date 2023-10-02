@@ -16,4 +16,6 @@ extern void ssd1362_i2c_driver_draw_line(uint16_t x1, uint16_t x2, uint16_t y1, 
 extern void ssd1362_i2c_driver_draw_rectangle(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint8_t color);
 extern void ssd1362_i2c_driver_draw_image(uint8_t *image, size_t image_width, size_t image_height,
 		uint16_t img_x1, uint16_t img_x2, uint16_t img_y1, uint16_t img_y2, uint16_t to_x, uint16_t to_y);
+extern void ssd1362_i2c_driver_draw_image_opacity(uint8_t *image, size_t image_width, size_t image_height,
+		uint16_t img_x1, uint16_t img_x2, uint16_t img_y1, uint16_t img_y2, uint16_t to_x, uint16_t to_y, float opacity);
 extern void ssd1362_i2c_driver_draw_greyscale(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2);

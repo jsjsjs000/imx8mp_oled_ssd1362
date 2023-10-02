@@ -21,4 +21,6 @@
 	b = tmp;                 \
 })
 
+#define ROUND_TO_2(a) (((a) / 2) * 2)
+
 extern void debug_string(char *s, int max_string);
