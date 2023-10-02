@@ -12,8 +12,14 @@
 #include <semphr.h>
 
 #include "common.h"
+#include "font.h"
 #include "ssd1362_i2c_driver.h"
 #include "i2c_task.h"
+
+static uint16_t last_string_x1 = 0;
+static uint16_t last_string_y1 = 0;
+static uint16_t last_string_x2 = 0;
+static uint16_t last_string_y2 = 0;
 
 static uint8_t oled_buffer[OLED_WIDTH * OLED_HEIGHT * OLED_COLOR_BITS / 8] = { 0 };
 
@@ -113,8 +119,18 @@ bool ssd1362_i2c_driver_update_all_screen(void)
 	return ssd1362_i2c_driver_update_screen(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1);
 }
 
+void ssd1362_i2c_driver_normalize_xy(uint16_t *x1, uint16_t *x2, uint16_t *y1, uint16_t *y2)
+{
+	*x1 = (*x1 / 2) * 2;
+	*y1 = (*y1 / 2) * 2;
+	*x2 = (*x2 / 2) * 2 + 1;
+	*y2 = (*y2 / 2) * 2 + 1;
+}
+
 bool ssd1362_i2c_driver_update_screen(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
+	ssd1362_i2c_driver_normalize_xy(&x1, &x2, &y1, &y2);
+
 	if (!ssd1362_i2c_driver_set_display_area(x1, x2, y1, y2))
 		return false;
 
@@ -240,13 +256,74 @@ void ssd1362_i2c_driver_draw_greyscale(uint16_t x1, uint16_t x2, uint16_t y1, ui
 	}
 }
 
+static uint16_t ssd1362_i2c_driver_get_char_bytes(Font *font)
+{
+	return font->FontWidthBytesAtEndOfLine ? font->Height + 1 : font->Height;
+}
+
+static uint16_t ssd1362_i2c_driver_get_char_width(Font *font, char c)
+{
+	uint16_t char_bytes = ssd1362_i2c_driver_get_char_bytes(font);
+	return font->FontWidthBytesAtEndOfLine ? font->FontTable[(c + 1 - 32) * char_bytes - 1] : font->RealWidth;
+}
+
+void ssd1362_i2c_driver_draw_char(Font *font, uint16_t x, uint16_t y, uint8_t color, uint8_t background_color, char c)
+{
+	uint16_t char_bytes = ssd1362_i2c_driver_get_char_bytes(font);
+	uint16_t char_width = ssd1362_i2c_driver_get_char_width(font, c);
+	uint16_t y0 = (c - 32) * char_bytes;
+
+	for (int y_ = 0; y_ < font->Height; y_++)
+	{
+		for (int x_ = 0; x_ < char_width; x_++)
+		{
+			uint8_t pixel;
+			if (font->Mirror)
+				pixel = GET_BIT(font->FontTable[y0 + y_], x_);
+			else
+				pixel = GET_BIT(font->FontTable[y0 + y_], font->Width - 1 - x_);
+			uint8_t pixel_color = (pixel) ? color : background_color;
+			ssd1362_i2c_driver_put_pixel(x + x_, y + y_, pixel_color);
+		}
+	}
+}
+
+void ssd1362_i2c_driver_draw_string(Font *font, uint16_t x, uint16_t y, uint8_t color, uint8_t background_color, const char *text)
+{
+	uint16_t char_width;
+	uint16_t x_ = x;
+	uint16_t y_ = y;
+	last_string_x1 = x;
+	last_string_y1 = y;
+
+	for (int i = 0; i < strlen(text); i++)
+	{
+		char_width = ssd1362_i2c_driver_get_char_width(font, text[i]);
+		if (x_ + char_width >= OLED_WIDTH - 1)
+		{
+			x_ = 0;
+			y_ += font->Height + 1;
+		}
+
+		ssd1362_i2c_driver_draw_char(font, x_, y_, color, background_color, text[i]);
+		x_ += char_width + font->XSpacing;
+	}
+
+	last_string_x2 = x_;
+	last_string_y2 = y_ + font->Height;
+PRINTF("%d %d  %d %d\r\n", last_string_x1, last_string_x2, last_string_y1, last_string_y2);
+}
+
+void ssd1362_i2c_driver_update_screen_for_last_string(void)
+{
+	ssd1362_i2c_driver_update_screen(last_string_x1, last_string_x2, last_string_y1, last_string_y2);
+}
+
 /*
 		todo: $$
-	logo PCO
-	nie kopiować do bufora przy wysyłaniu I2C - bezpośredi bufor I2C
-	fonty
-	generator obrazków PHP, link do katalogu w jarsulk-pc
+	generator obrazków PHP - github
 	wysyłanie I2C blokujące - DMA lub task z niskim priorytetem
+	działanie razem z Linuxem - device tree
 
 		Shop:
 	REX025664AWAP3N00000 256x64x4bit

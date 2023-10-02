@@ -1,3 +1,5 @@
+#include "font.h"
+
 #define OLED_WIDTH       256
 #define OLED_HEIGHT      64
 #define OLED_COLOR_BITS  4
@@ -11,6 +13,7 @@ extern bool ssd1362_i2c_driver_turn_on_off(bool on);
 extern void ssd1362_i2c_driver_clear(void);
 extern void ssd1362_i2c_driver_fill_color(uint8_t color);
 extern bool ssd1362_i2c_driver_update_all_screen(void);
+extern void ssd1362_i2c_driver_normalize_xy(uint16_t *x1, uint16_t *x2, uint16_t *y1, uint16_t *y2);
 extern bool ssd1362_i2c_driver_update_screen(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2);
 extern void ssd1362_i2c_driver_draw_line(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint8_t color);
 extern void ssd1362_i2c_driver_draw_rectangle(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint8_t color);
@@ -19,3 +22,6 @@ extern void ssd1362_i2c_driver_draw_image(uint8_t *image, size_t image_width, si
 extern void ssd1362_i2c_driver_draw_image_opacity(uint8_t *image, size_t image_width, size_t image_height,
 		uint16_t img_x1, uint16_t img_x2, uint16_t img_y1, uint16_t img_y2, uint16_t to_x, uint16_t to_y, float opacity);
 extern void ssd1362_i2c_driver_draw_greyscale(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2);
+extern void ssd1362_i2c_driver_draw_char(Font *font, uint16_t x, uint16_t y, uint8_t color, uint8_t background_color, char c);
+extern void ssd1362_i2c_driver_draw_string(Font *font, uint16_t x, uint16_t y, uint8_t color, uint8_t background_color, const char *text);
+extern void ssd1362_i2c_driver_update_screen_for_last_string(void);

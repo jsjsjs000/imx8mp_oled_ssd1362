@@ -1,9 +1,9 @@
 #include "font.h"
 #include "fonts5x8.h"
 
-struct Font Font5x8 =
+Font Font5x8 =
 {
-	.RealWidth = 8,
+	.RealWidth = 5,
 	.Width = 8,
 	.Height = 8,
 	.XSpacing = 1,

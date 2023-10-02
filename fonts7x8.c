@@ -1,7 +1,7 @@
 #include "font.h"
 #include "fonts7x8.h"
 
-struct Font Font7x8 =
+Font Font7x8 =
 {
 	.RealWidth = 7,
 	.Width = 8,
@@ -11,7 +11,6 @@ struct Font Font7x8 =
 	.FontWidthBytesAtEndOfLine = 0,
 	.FontTable = FontTable7x8
 };
-
 
 /// Generated in TheDotFactory.exe
 

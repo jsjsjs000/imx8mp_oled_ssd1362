@@ -3,7 +3,7 @@
 
 #include <fsl_device_registers.h>
 
-struct Font
+typedef struct
 {
 	const uint8_t RealWidth;
 	const uint8_t Width;
@@ -12,6 +12,6 @@ struct Font
 	const uint8_t Mirror;
 	const uint8_t FontWidthBytesAtEndOfLine;
 	const uint16_t* FontTable;
-};
+} Font;
 
 #endif /* __FONT_H */
