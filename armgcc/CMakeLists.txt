@@ -63,6 +63,13 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
 	"${ProjDirPath}/../image_pco.h"
 	"${ProjDirPath}/../ssd1362_i2c_driver.c"
 	"${ProjDirPath}/../ssd1362_i2c_driver.h"
+	"${ProjDirPath}/../font.h"
+	"${ProjDirPath}/../fonts5x8.c"
+	"${ProjDirPath}/../fonts5x8.h"
+	"${ProjDirPath}/../fonts7x8.c"
+	"${ProjDirPath}/../fonts7x8.h"
+	"${ProjDirPath}/../fonts16.c"
+	"${ProjDirPath}/../fonts16.h"
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE

@@ -19,8 +19,11 @@
 #include "board_cfg/clock_config.h"
 #include "board_cfg/pin_mux.h"
 
+#include "common.h"
 #include "i2c_task.h"
 #include "ssd1362_i2c_driver.h"
+#include "image_pco.h"
+#include "image_ostatnia_wieczerza.h"
 
 // #define I2C_DELAY 750
 
@@ -76,13 +79,70 @@ void i2c_task_task(void *pvParameters)
 
 	ssd1362_i2c_driver_initialize(true);
 
+	ssd1362_i2c_driver_clear();
+	// ssd1362_i2c_driver_fill_color(0x03);
+	ssd1362_i2c_driver_update_all_screen();
+	ssd1362_i2c_driver_turn_on_off(true);
+
+	// ssd1362_i2c_driver_draw_greyscale(0, 128 - 1, 0, 32 - 1);
+	// ssd1362_i2c_driver_draw_greyscale(128, 128 + 64 - 1, 32, 32 + 16 - 1);
+
+	uint16_t imgx = ROUND_TO_2(OLED_WIDTH / 2 - Image_pco_width / 2);
+	uint16_t imgy = OLED_HEIGHT / 2 - Image_pco_height / 2;
+	for (float opacity = 0.0; opacity <= 1.0 + 0.0001; opacity += 0.125)
+	{
+		ssd1362_i2c_driver_draw_image_opacity((uint8_t*)Image_pco, Image_pco_width, Image_pco_height,
+				0, Image_pco_width - 1, 0, Image_pco_height - 1, imgx, imgy, opacity);
+		ssd1362_i2c_driver_update_screen(imgx, imgx + Image_pco_width - 1, imgy, imgy + Image_pco_height - 1);
+		vTaskDelay(pdMS_TO_TICKS(50));
+	}
+
+	vTaskDelay(pdMS_TO_TICKS(1500));
+	ssd1362_i2c_driver_clear();
+	ssd1362_i2c_driver_update_all_screen();
+
+
+	// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_weczerza, Image_ostatnia_weczerza_width, Image_ostatnia_weczerza_height, 0, Image_ostatnia_weczerza_width - 1, 0, Image_ostatnia_weczerza_height - 1, 0, 0);
+	// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_weczerza, Image_ostatnia_weczerza_width, Image_ostatnia_weczerza_height, 128, 128 + 128 - 1, 32, 32 + 32 - 1, 64, 16);
+
+	// ssd1362_i2c_driver_draw_line(OLED_WIDTH - 1, 0, 0, OLED_HEIGHT - 1, 0x0f);
+	// ssd1362_i2c_driver_draw_line(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1, 0x0f);
+	// ssd1362_i2c_driver_draw_line(32 - 1, 0, 0, OLED_HEIGHT - 1, 0x0f);
+	// ssd1362_i2c_driver_draw_line(0, 32 - 1, 0, OLED_HEIGHT - 1, 0x0f);
+	// ssd1362_i2c_driver_draw_rectangle(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1, 0x0f);
+
+	// ssd1362_i2c_driver_update_all_screen();
+
+	PRINTF("finish\r\n");
+
+	// ssd1362_i2c_driver_clear();
+	// ssd1362_i2c_driver_update_all_screen();
+	// ssd1362_i2c_driver_update_screen(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1);
+
 	while (true)
 	{
-		//i2c_task_write_command();
-		// ssd1362_i2c_driver();
+		// ssd1362_i2c_driver_turn_on_off(true);
+		// ssd1362_i2c_driver_update_screen(64, 64 + 128 - 1, 16, 16 + 32 - 1);
+		// vTaskDelay(pdMS_TO_TICKS(500));
 
-		vTaskDelay(pdMS_TO_TICKS(20));
-// vTaskDelay(pdMS_TO_TICKS(2000)); // $$
+		// ssd1362_i2c_driver_turn_on_off(true);
+		// ssd1362_i2c_driver_draw_greyscale(64, 64 + 128 - 1, 16, 16 + 32 - 1);
+		// vTaskDelay(pdMS_TO_TICKS(500));
+	}
+
+	while (true)
+	{
+		// ssd1362_i2c_driver_turn_on_off(false);
+		// vTaskDelay(pdMS_TO_TICKS(200));
+		// ssd1362_i2c_driver_update_screen();
+		// ssd1362_i2c_driver_turn_on_off(true);
+		// vTaskDelay(pdMS_TO_TICKS(1000));
+
+		// ssd1362_i2c_driver_turn_on_off(false);
+		// vTaskDelay(pdMS_TO_TICKS(200));
+		// ssd1362_i2c_driver_draw_greyscale();
+		// ssd1362_i2c_driver_turn_on_off(true);
+		// vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 
 	vTaskSuspend(NULL);
