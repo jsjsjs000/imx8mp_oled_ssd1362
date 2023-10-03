@@ -125,6 +125,8 @@ void ssd1362_i2c_driver_normalize_xy(uint16_t *x1, uint16_t *x2, uint16_t *y1, u
 	*y1 = (*y1 / 2) * 2;
 	*x2 = (*x2 / 2) * 2 + 1;
 	*y2 = (*y2 / 2) * 2 + 1;
+	*x2 = min(*x2, OLED_WIDTH);
+	*y2 = min(*y2, OLED_HEIGHT);
 }
 
 bool ssd1362_i2c_driver_update_screen(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
@@ -156,6 +158,9 @@ void ssd1362_i2c_driver_put_pixel(uint16_t x, uint16_t y, uint8_t color)
 {
 	color = color & 0x0f;
 	uint16_t i = y * OLED_WIDTH  * OLED_COLOR_BITS / 8 + x * OLED_COLOR_BITS / 8;
+	if (i >= sizeof(oled_buffer))
+		return;
+
 	if ((x % 2) == 0)
 		oled_buffer[i] = (oled_buffer[i] & 0x0f) | (color << 4);
 	else
@@ -215,10 +220,18 @@ void ssd1362_i2c_driver_draw_image(uint8_t *image, size_t image_width, size_t im
 {
 	uint in, out;
 	size_t size = (img_x2 - img_x1 + 1) * OLED_COLOR_BITS / 8;
+	size_t image_size = image_width * image_height * OLED_COLOR_BITS / 8;
+
 	for (int y = img_y1; y <= img_y2; y++)
 	{
 		in = y * image_width * OLED_COLOR_BITS / 8 + img_x1 * OLED_COLOR_BITS / 8;
+		if (in + size > image_size)
+			return;
+
 		out = (to_y + y - img_y1) * OLED_WIDTH * OLED_COLOR_BITS / 8 + to_x * OLED_COLOR_BITS / 8;
+		if (out + size > sizeof(oled_buffer))
+			return;
+
 		memcpy(&oled_buffer[out], &image[in], size);
 	}
 }
@@ -230,10 +243,18 @@ void ssd1362_i2c_driver_draw_image_opacity(uint8_t *image, size_t image_width, s
 	uint8_t c1, c2;
 	uint in, out;
 	size_t size = (img_x2 - img_x1 + 1) * OLED_COLOR_BITS / 8;
+	size_t image_size = image_width * image_height * OLED_COLOR_BITS / 8;
+
 	for (int y = img_y1; y <= img_y2; y++)
 	{
 		in = y * image_width * OLED_COLOR_BITS / 8 + img_x1 * OLED_COLOR_BITS / 8;
+		if (in + size > image_size)
+			return;
+
 		out = (to_y + y - img_y1) * OLED_WIDTH * OLED_COLOR_BITS / 8 + to_x * OLED_COLOR_BITS / 8;
+		if (out + size > sizeof(oled_buffer))
+			return;
+
 		for (int x = 0; x < size; x++)
 		{
 			c1 = image[in] >> 4;
@@ -320,9 +341,11 @@ void ssd1362_i2c_driver_update_screen_for_last_string(void)
 
 /*
 		todo: $$
+	g_master_buff
+	czcionka średnia
 	generator obrazków PHP - github
 	wysyłanie I2C blokujące - DMA lub task z niskim priorytetem
-	działanie razem z Linuxem - device tree
+	działanie razem z Linuxem - nie bootować Linuxa, bo używa I2C4 - pozostawać w U-boot (PCO devboard i.MX8MP)
 
 		Shop:
 	REX025664AWAP3N00000 256x64x4bit

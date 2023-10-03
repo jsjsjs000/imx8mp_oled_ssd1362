@@ -1,5 +1,4 @@
 // #define DEBUG_I2C
-// #define DEBUG_LEDS
 
 	/* Freescale includes. */
 #include <fsl_device_registers.h>
@@ -39,10 +38,9 @@ static uint32_t sourceClock;
 
 void i2c_task_initialize(void)
 {
-	CLOCK_SetRootMux(I2C_MASTER_CLK_ROOT, I2C_MASTER_ROOT_MUX_SYS_PLL_DIV); /* Set I2C source to SysPLL1 Div5 160MHZ */
-	CLOCK_SetRootDivider(I2C_MASTER_CLK_ROOT, 1U, 10U);                  /* Set root clock to 160MHZ / 10 = 16MHZ */
-
-	NVIC_SetPriority(I2C_MASTER_IRQN, 3);
+	CLOCK_SetRootMux(I2C_OLED_CLK_ROOT, I2C_OLED_ROOT_MUX_SYS_PLL_DIV); /* Set I2C source to SysPLL1 Div5 160MHZ */
+	CLOCK_SetRootDivider(I2C_OLED_CLK_ROOT, 1U, 10U);                   /* Set root clock to 160MHZ / 10 = 16MHZ */
+	NVIC_SetPriority(I2C_OLED_IRQN, 3);
 
 	/*
 		masterConfig.baudRate_Bps = 100000U;
@@ -52,9 +50,9 @@ void i2c_task_initialize(void)
 	*/
 	I2C_MasterGetDefaultConfig(&masterConfig);
 	masterConfig.baudRate_Bps = I2C_BAUDRATE;
-	sourceClock = I2C_MASTER_CLK_FREQ;
+	sourceClock = I2C_OLED_CLK_FREQ;
 
-	status_t status = I2C_RTOS_Init(&master_rtos_handle, I2C_MASTER, &masterConfig, sourceClock);
+	status_t status = I2C_RTOS_Init(&master_rtos_handle, I2C_OLED, &masterConfig, sourceClock);
 	if (status != kStatus_Success)
 	{
 		PRINTF("I2C master: error during init, 0x%x\r\n", status);
@@ -63,16 +61,11 @@ void i2c_task_initialize(void)
 	g_m_handle = &master_rtos_handle.drv_handle;
 
 	memset(&masterXfer, 0, sizeof(masterXfer));
-	masterXfer.slaveAddress   = I2C_MASTER_SLAVE_ADDR_7BIT;
+	masterXfer.slaveAddress   = I2C_OLED_SLAVE_ADDR_7BIT;
 	masterXfer.direction      = kI2C_Write;
-	// masterXfer.subaddress     = 0x11; // 10 - register autoincrement, 01 - write from register
-	// masterXfer.subaddressSize = 1;
-masterXfer.subaddressSize = 0;
 	masterXfer.data           = g_master_buff;
 	masterXfer.dataSize       = 0;
 	masterXfer.flags          = kI2C_TransferDefaultFlag;
-
-PRINTF("I2C master: init\r\n"); // $$
 }
 
 void i2c_task_task(void *pvParameters)
@@ -82,12 +75,8 @@ void i2c_task_task(void *pvParameters)
 	ssd1362_i2c_driver_initialize(true);
 
 	ssd1362_i2c_driver_clear();
-	// ssd1362_i2c_driver_fill_color(0x03);
 	ssd1362_i2c_driver_update_all_screen();
 	ssd1362_i2c_driver_turn_on_off(true);
-
-	// ssd1362_i2c_driver_draw_greyscale(0, 128 - 1, 0, 32 - 1);
-	// ssd1362_i2c_driver_draw_greyscale(128, 128 + 64 - 1, 32, 32 + 16 - 1);
 
 		/// draw PCO logo
 	uint16_t imgx = ROUND_TO_2(OLED_WIDTH / 2 - Image_pco_width / 2);
@@ -103,12 +92,13 @@ void i2c_task_task(void *pvParameters)
 	ssd1362_i2c_driver_clear();
 	ssd1362_i2c_driver_update_all_screen();
 
+		/// draw some text
 	ssd1362_i2c_driver_draw_string(&Font7x8, 0, 0, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
 	ssd1362_i2c_driver_draw_string(&Font5x8, 0, 20, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmno");
 	ssd1362_i2c_driver_draw_string(&Font16, 0, 48, 0x0f, 0, "abcdefghijklmnopqrstuvw");
-
 	ssd1362_i2c_driver_update_all_screen();
 
+		/// draw and fast update text
 	int i = 25;
 	int u = 12;
 	int t = 25;
@@ -126,12 +116,16 @@ void i2c_task_task(void *pvParameters)
 		sprintf(s, "T=%dC", t++);
 		ssd1362_i2c_driver_draw_string(&Font7x8, 164, 34, 0x0f, 0, s);
 		ssd1362_i2c_driver_update_screen_for_last_string();
-
-		// vTaskDelay(pdMS_TO_TICKS(500));
 	}
 
-	// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_weczerza, Image_ostatnia_weczerza_width, Image_ostatnia_weczerza_height, 0, Image_ostatnia_weczerza_width - 1, 0, Image_ostatnia_weczerza_height - 1, 0, 0);
-	// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_weczerza, Image_ostatnia_weczerza_width, Image_ostatnia_weczerza_height, 128, 128 + 128 - 1, 32, 32 + 32 - 1, 64, 16);
+	// ssd1362_i2c_driver_fill_color(0x07);
+
+	// ssd1362_i2c_driver_draw_greyscale(0, 128 - 1, 0, 32 - 1);
+	// ssd1362_i2c_driver_draw_greyscale(128, 128 + 64 - 1, 32, 32 + 16 - 1);
+
+	// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_wieczerza, Image_ostatnia_wieczerza_width, Image_ostatnia_wieczerza_height, 0, Image_ostatnia_wieczerza_width - 1, 0, Image_ostatnia_wieczerza_height - 1, 0, 0);
+	// ssd1362_i2c_driver_draw_image((uint8_t*)Image_ostatnia_wieczerza, Image_ostatnia_wieczerza_width, Image_ostatnia_wieczerza_height, 128, 128 + 128 - 1, 32, 32 + 32 - 1, 64, 16);
+	// ssd1362_i2c_driver_draw_image_opacity((uint8_t*)Image_ostatnia_wieczerza, Image_ostatnia_wieczerza_width, Image_ostatnia_wieczerza_height, 0, Image_ostatnia_wieczerza_width - 1, 0, Image_ostatnia_wieczerza_height - 1, 0, 0, 0.8);
 
 	// ssd1362_i2c_driver_draw_line(OLED_WIDTH - 1, 0, 0, OLED_HEIGHT - 1, 0x0f);
 	// ssd1362_i2c_driver_draw_line(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1, 0x0f);
@@ -139,11 +133,11 @@ void i2c_task_task(void *pvParameters)
 	// ssd1362_i2c_driver_draw_line(0, 32 - 1, 0, OLED_HEIGHT - 1, 0x0f);
 	// ssd1362_i2c_driver_draw_rectangle(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1, 0x0f);
 
-	PRINTF("I2C task: Finish draw on OLED.\r\n");
-
 	// ssd1362_i2c_driver_clear();
 	// ssd1362_i2c_driver_update_all_screen();
 	// ssd1362_i2c_driver_update_screen(0, OLED_WIDTH - 1, 0, OLED_HEIGHT - 1);
+
+	PRINTF("I2C task: Finish draw on OLED.\r\n");
 
 	while (true) ;
 
@@ -156,13 +150,13 @@ bool i2c_task_write_command(uint8_t *command, size_t command_size)
 	for (int i = 0; i < command_size; i++)		// $$ bezsensowne kopiowanie
 		g_master_buff[j++] = command[i];
 
-#ifdef DEBUG_I2C
+#ifdef DEBUG_I2C // $$
 #endif
 
 	masterXfer.direction = kI2C_Write;
 	masterXfer.dataSize = command_size;
 
-// PRINTF("I2C master: before write %d %x %x\r\n", j, g_master_buff[0], g_master_buff[1]);
+// PRINTF("I2C master: before write %d %x %x\r\n", j, g_master_buff[0], g_master_buff[1]); $$
 	status_t status = I2C_RTOS_Transfer(&master_rtos_handle, &masterXfer);
 	if (status != kStatus_Success)
 	{
@@ -170,8 +164,7 @@ bool i2c_task_write_command(uint8_t *command, size_t command_size)
 		return false;
 	}
 
-	// PRINTF("I2C master: wrote bytes\r\n");
-#ifdef DEBUG_I2C
+#ifdef DEBUG_I2C // $$
 #endif
 	return true;
 }
