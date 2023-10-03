@@ -100,7 +100,7 @@ void i2c_task_task(void *pvParameters)
 
 		/// draw and fast update text
 	int i = 25;
-	int u = 12;
+	float u = 12;
 	int t = 25;
 	char s[64];
 	while (true)
@@ -109,13 +109,16 @@ void i2c_task_task(void *pvParameters)
 		ssd1362_i2c_driver_draw_string(&Font7x8, 24, 34, 0x0f, 0, s);
 		ssd1362_i2c_driver_update_screen_for_last_string();
 
-		sprintf(s, "U=%dV", u++);
+		sprintf(s, "U=%.1fV", u);
+		u += 0.1;
 		ssd1362_i2c_driver_draw_string(&Font7x8, 96, 34, 0x0f, 0, s);
 		ssd1362_i2c_driver_update_screen_for_last_string();
 
 		sprintf(s, "T=%dC", t++);
 		ssd1362_i2c_driver_draw_string(&Font7x8, 164, 34, 0x0f, 0, s);
 		ssd1362_i2c_driver_update_screen_for_last_string();
+
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 
 	// ssd1362_i2c_driver_fill_color(0x07);

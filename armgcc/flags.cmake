@@ -491,11 +491,13 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG " \
     -Xlinker \
     -Map=output.map \
     -T${ProjDirPath}/MIMX8ML8xxxxx_cm7_ram.ld -static \
+		-u _printf_float \
 ")
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE " \
     ${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
     -mcpu=cortex-m7 \
     -Wall \
+		-Werror-implicit-function-declaration \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -Wl,--print-memory-usage \
