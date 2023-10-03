@@ -25,12 +25,18 @@
 
 #define TASK_STACK_SIZE 1024
 
-#define GPIO_LED_PORT  GPIO5
-#define GPIO_LED_PIN   5U
+#define GPIO_BUTTON1_PORT  GPIO1
+#define GPIO_BUTTON1_PIN   0U
+#define GPIO_BUTTON2_PORT  GPIO1
+#define GPIO_BUTTON2_PIN   1U
+#define GPIO_BUTTON3_PORT  GPIO1
+#define GPIO_BUTTON3_PIN   3U
+#define GPIO_BUTTON4_PORT  GPIO1
+#define GPIO_BUTTON4_PIN   5U
 
 #define master_task_PRIORITY (configMAX_PRIORITIES - 2)
 
-// static void gpio_init(void);
+static void gpio_init(void);
 static void master_task(void *pvParameters);
 
 void delay_ms(int ms)
@@ -50,7 +56,7 @@ void main(void)
 
 	PRINTF("\r\nCortex-M7 started.\r\n");
 
-	// gpio_init();
+	gpio_init();
 	i2c_task_initialize();
 
 	if (xTaskCreate(master_task, "Master_task", configMINIMAL_STACK_SIZE + TASK_STACK_SIZE, NULL,
@@ -80,15 +86,19 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 	PRINTF("\r\nError: stack overflow\r\n");
 }
 
-// static void gpio_init(void)
-// {
-// 	gpio_pin_config_t led_config = { kGPIO_DigitalOutput, 0, kGPIO_IntLowLevel };
-// 	GPIO_PinInit(GPIO_LED_PORT, GPIO_LED_PIN, &led_config);
-// }
+static void gpio_init(void)
+{
+	gpio_pin_config_t gpio_config = { kGPIO_DigitalOutput, 0, kGPIO_IntLowLevel };
+	GPIO_PinInit(GPIO_BUTTON1_PORT, GPIO_BUTTON1_PIN, &gpio_config);
+	GPIO_PinInit(GPIO_BUTTON2_PORT, GPIO_BUTTON2_PIN, &gpio_config);
+	GPIO_PinInit(GPIO_BUTTON3_PORT, GPIO_BUTTON3_PIN, &gpio_config);
+	GPIO_PinInit(GPIO_BUTTON4_PORT, GPIO_BUTTON4_PIN, &gpio_config);
+}
 
 static void master_task(void *pvParameters)
 {
 	PRINTF("Master task started.\r\n");
+PRINTF("%d %d\r\n", pdMS_TO_TICKS(10), pdMS_TO_TICKS(2));
 
 // int last_s = 0, s = 0;
 	// uint32_t ms, cycle;
@@ -103,12 +113,12 @@ static void master_task(void *pvParameters)
 // if (s > last_s)
 //  PRINTF("ms %d, clock_correction %d, ms-clock_correction %d \r\n", ms, clock_correction, ms - clock_correction);
 // last_s = s;
-		vTaskDelay(pdMS_TO_TICKS(10));
+		// vTaskDelay(pdMS_TO_TICKS(10));
 
-		// GPIO_PinWrite(GPIO_LED_PORT, GPIO_LED_PIN, 0);
-		// vTaskDelay(pdMS_TO_TICKS(500));
-		// GPIO_PinWrite(GPIO_LED_PORT, GPIO_LED_PIN, 1);
-		// vTaskDelay(pdMS_TO_TICKS(500));
+		GPIO_PinWrite(GPIO_BUTTON4_PORT, GPIO_BUTTON4_PIN, 0);
+		vTaskDelay(pdMS_TO_TICKS(1));
+		GPIO_PinWrite(GPIO_BUTTON4_PORT, GPIO_BUTTON4_PIN, 1);
+		vTaskDelay(pdMS_TO_TICKS(1));
 	}
 
 	vTaskSuspend(NULL);

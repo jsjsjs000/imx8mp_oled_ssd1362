@@ -118,7 +118,7 @@ void i2c_task_task(void *pvParameters)
 		ssd1362_i2c_driver_draw_string(&Font7x8, 164, 34, 0x0f, 0, s);
 		ssd1362_i2c_driver_update_screen_for_last_string();
 
-		vTaskDelay(pdMS_TO_TICKS(50));
+		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 
 	// ssd1362_i2c_driver_fill_color(0x07);

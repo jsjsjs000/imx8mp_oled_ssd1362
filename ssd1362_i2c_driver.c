@@ -342,10 +342,12 @@ void ssd1362_i2c_driver_update_screen_for_last_string(void)
 /*
 		todo: $$
 	g_master_buff
+	+ wysyłanie I2C blokujące - DMA lub task z niskim priorytetem - nie musi być DMA
+
 	czcionka średnia
+	.NET, mono
 	generator obrazków PHP - github
-	wysyłanie I2C blokujące - DMA lub task z niskim priorytetem
-	działanie razem z Linuxem - nie bootować Linuxa, bo używa I2C4 - pozostawać w U-boot (PCO devboard i.MX8MP)
+	+ działanie razem z Linuxem - nie bootować Linuxa, bo używa I2C4 - pozostawać w U-boot (PCO devboard i.MX8MP)
 
 		Shop:
 	REX025664AWAP3N00000 256x64x4bit
