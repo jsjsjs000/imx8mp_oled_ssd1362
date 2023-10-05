@@ -14,7 +14,7 @@ Font Font5x8 =
 
 /// Generated in TheDotFactory.exe
 
-const uint16_t FontTable5x8[] = 
+const uint8_t FontTable5x8[] = 
 {
 	// @0 ' ' (5 pixels wide)
 	0x00, //      

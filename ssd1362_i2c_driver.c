@@ -88,7 +88,7 @@ static bool ssd1362_i2c_driver_write_command(uint8_t *data, size_t data_size)
 		buffer[b++] = (i == data_size - 1) ? 0 : OLED_CONTROL_BYTE_CONTINUATION_BIT;
 		buffer[b++] = data[i];
 	}
-	return i2c_task_write_command(buffer, b);
+	return i2c_task_write_data(buffer, b);
 }
 
 void ssd1362_i2c_driver_clear(void)
@@ -147,7 +147,7 @@ bool ssd1362_i2c_driver_update_screen(uint16_t x1, uint16_t x2, uint16_t y1, uin
 		memcpy(&buffer[out], &oled_buffer[in], size);
 		out += size;
 
-		if (!i2c_task_write_command(buffer, out))
+		if (!i2c_task_write_data(buffer, out))
 			return false;
 	}
 
@@ -319,19 +319,54 @@ void ssd1362_i2c_driver_draw_string(Font *font, uint16_t x, uint16_t y, uint8_t 
 
 	for (int i = 0; i < strlen(text); i++)
 	{
-		char_width = ssd1362_i2c_driver_get_char_width(font, text[i]);
+		char c = text[i];
+
+		if (text[i] >= 0x7f)
+		{
+			c = 0;
+			uint16_t char2 = text[i++] << 8;
+			char2 |= text[i];
+			switch (char2)
+			{
+				case 0xc485: c = 0x80; break;  /// ą
+				case 0xc487: c = 0x81; break;  /// ć
+				case 0xc499: c = 0x82; break;  /// ę
+				case 0xc582: c = 0x83; break;  /// ł
+				case 0xc584: c = 0x84; break;  /// ń
+				case 0xc3b3: c = 0x85; break;  /// ó
+				case 0xc59b: c = 0x86; break;  /// ś
+				case 0xc5bc: c = 0x87; break;  /// ż
+				case 0xc5ba: c = 0x88; break;  /// ź
+				case 0xc484: c = 0x89; break;  /// Ą
+				case 0xc486: c = 0x8a; break;  /// Ć
+				case 0xc498: c = 0x8b; break;  /// Ę
+				case 0xc581: c = 0x8c; break;  /// Ł
+				case 0xc583: c = 0x8d; break;  /// Ń
+				case 0xc393: c = 0x8e; break;  /// Ó
+				case 0xc59a: c = 0x8f; break;  /// Ś
+				case 0xc5bb: c = 0x90; break;  /// Ż
+				case 0xc5b9: c = 0x91; break;  /// Ź
+			}
+			if (c == 0)
+				continue;
+		}
+
+		char_width = ssd1362_i2c_driver_get_char_width(font, c);
+		if (char_width > font->Width)
+			continue;
+
 		if (x_ + char_width >= OLED_WIDTH - 1)
 		{
 			x_ = 0;
-			y_ += font->Height + 1;
+			y_ += font->RealHeight + font->YSpacing;
 		}
 
-		ssd1362_i2c_driver_draw_char(font, x_, y_, color, background_color, text[i]);
+		ssd1362_i2c_driver_draw_char(font, x_, y_, color, background_color, c);
 		x_ += char_width + font->XSpacing;
 	}
 
 	last_string_x2 = x_;
-	last_string_y2 = y_ + font->Height;
+	last_string_y2 = y_ + font->RealHeight;
 }
 
 void ssd1362_i2c_driver_update_screen_for_last_string(void)
@@ -340,13 +375,10 @@ void ssd1362_i2c_driver_update_screen_for_last_string(void)
 }
 
 /*
-		todo: $$
-	g_master_buff
-	+ wysyłanie I2C blokujące - DMA lub task z niskim priorytetem - nie musi być DMA
-
-	czcionka średnia
-	.NET, mono
+		todo:
 	generator obrazków PHP - github
+
+	+ wysyłanie I2C blokujące - DMA lub task z niskim priorytetem - nie musi być DMA
 	+ działanie razem z Linuxem - nie bootować Linuxa, bo używa I2C4 - pozostawać w U-boot (PCO devboard i.MX8MP)
 
 		Shop:

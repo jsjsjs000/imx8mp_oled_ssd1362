@@ -1,5 +1,3 @@
-// #define DEBUG_I2C
-
 	/* Freescale includes. */
 #include <fsl_device_registers.h>
 #include <fsl_debug_console.h>
@@ -24,12 +22,11 @@
 #include "image_pco.h"
 #include "image_ostatnia_wieczerza.h"
 #include "font.h"
-#include "fonts16.h"
-#include "fonts5x8.h"
 #include "fonts7x8.h"
+#include "fonts_ubuntu_bold_10pts.h"
 
-static uint8_t g_master_buff[I2C_DATA_LENGTH];
-static i2c_master_handle_t *g_m_handle;
+static uint8_t i2c_buffor[I2C_BUFFOR_SIZE];
+static i2c_master_handle_t *i2c_master_handle;
 
 static i2c_rtos_handle_t master_rtos_handle;
 static i2c_master_config_t masterConfig;
@@ -58,12 +55,12 @@ void i2c_task_initialize(void)
 		PRINTF("I2C master: error during init, 0x%x\r\n", status);
 	}
 
-	g_m_handle = &master_rtos_handle.drv_handle;
+	i2c_master_handle = &master_rtos_handle.drv_handle;
 
 	memset(&masterXfer, 0, sizeof(masterXfer));
 	masterXfer.slaveAddress   = I2C_OLED_SLAVE_ADDR_7BIT;
 	masterXfer.direction      = kI2C_Write;
-	masterXfer.data           = g_master_buff;
+	masterXfer.data           = i2c_buffor;
 	masterXfer.dataSize       = 0;
 	masterXfer.flags          = kI2C_TransferDefaultFlag;
 }
@@ -79,47 +76,49 @@ void i2c_task_task(void *pvParameters)
 	ssd1362_i2c_driver_turn_on_off(true);
 
 		/// draw PCO logo
-	uint16_t imgx = ROUND_TO_2(OLED_WIDTH / 2 - Image_pco_width / 2);
-	uint16_t imgy = OLED_HEIGHT / 2 - Image_pco_height / 2;
-	for (float opacity = 0.0; opacity <= 1.0 + 0.0001; opacity += 0.125)
-	{
-		ssd1362_i2c_driver_draw_image_opacity((uint8_t*)Image_pco, Image_pco_width, Image_pco_height,
-				0, Image_pco_width - 1, 0, Image_pco_height - 1, imgx, imgy, opacity);
-		ssd1362_i2c_driver_update_screen(imgx, imgx + Image_pco_width - 1, imgy, imgy + Image_pco_height - 1);
-		vTaskDelay(pdMS_TO_TICKS(50));
-	}
-	vTaskDelay(pdMS_TO_TICKS(1500));
-	ssd1362_i2c_driver_clear();
-	ssd1362_i2c_driver_update_all_screen();
+	// uint16_t imgx = ROUND_TO_2(OLED_WIDTH / 2 - Image_pco_width / 2);
+	// uint16_t imgy = OLED_HEIGHT / 2 - Image_pco_height / 2;
+	// for (float opacity = 0.0; opacity <= 1.0 + 0.0001; opacity += 0.125)
+	// {
+	// 	ssd1362_i2c_driver_draw_image_opacity((uint8_t*)Image_pco, Image_pco_width, Image_pco_height,
+	// 			0, Image_pco_width - 1, 0, Image_pco_height - 1, imgx, imgy, opacity);
+	// 	ssd1362_i2c_driver_update_screen(imgx, imgx + Image_pco_width - 1, imgy, imgy + Image_pco_height - 1);
+	// 	vTaskDelay(pdMS_TO_TICKS(50));
+	// }
+	// vTaskDelay(pdMS_TO_TICKS(1500));
+	// ssd1362_i2c_driver_clear();
+	// ssd1362_i2c_driver_update_all_screen();
 
 		/// draw some text
 	ssd1362_i2c_driver_draw_string(&Font7x8, 0, 0, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
-	ssd1362_i2c_driver_draw_string(&Font5x8, 0, 20, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmno");
-	ssd1362_i2c_driver_draw_string(&Font16, 0, 48, 0x0f, 0, "abcdefghijklmnopqrstuvw");
+	ssd1362_i2c_driver_draw_string(&FontUbuntuBold10pts, 0, 20, 0x0f, 0,
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżźĄĆĘŁŃÓŚŻŹ");
+	// ssd1362_i2c_driver_draw_string(&Font16, 0, 48, 0x0f, 0, "abcdefghijklmnopqrstuvw");
 	ssd1362_i2c_driver_update_all_screen();
 
 		/// draw and fast update text
-	int i = 25;
-	float u = 12;
-	int t = 25;
-	char s[64];
-	while (true)
-	{
-		sprintf(s, "I=%dmA", i++);
-		ssd1362_i2c_driver_draw_string(&Font7x8, 24, 34, 0x0f, 0, s);
-		ssd1362_i2c_driver_update_screen_for_last_string();
+	// int i = 25;
+	// float u = 12;
+	// int t = 25;
+	// char s[64];
+	// while (true)
+	// {
+	// 	sprintf(s, "I=%dmA", i++);
+	// 	ssd1362_i2c_driver_draw_string(&Font7x8, 24, 34, 0x0f, 0, s);
+	// 	ssd1362_i2c_driver_update_screen_for_last_string();
 
-		sprintf(s, "U=%.1fV", u);
-		u += 0.1;
-		ssd1362_i2c_driver_draw_string(&Font7x8, 96, 34, 0x0f, 0, s);
-		ssd1362_i2c_driver_update_screen_for_last_string();
+	// 	sprintf(s, "U=%.1fV", u);
+	// 	u += 0.1;
+	// 	ssd1362_i2c_driver_draw_string(&Font7x8, 96, 34, 0x0f, 0, s);
+	// 	ssd1362_i2c_driver_update_screen_for_last_string();
 
-		sprintf(s, "T=%dC", t++);
-		ssd1362_i2c_driver_draw_string(&Font7x8, 164, 34, 0x0f, 0, s);
-		ssd1362_i2c_driver_update_screen_for_last_string();
+	// 	sprintf(s, "T=%dC", t++);
+	// 	ssd1362_i2c_driver_draw_string(&Font7x8, 164, 34, 0x0f, 0, s);
+	// 	ssd1362_i2c_driver_update_screen_for_last_string();
 
-		vTaskDelay(pdMS_TO_TICKS(500));
-	}
+	// 	vTaskDelay(pdMS_TO_TICKS(500));
+	// }
+
 
 	// ssd1362_i2c_driver_fill_color(0x07);
 
@@ -147,19 +146,15 @@ void i2c_task_task(void *pvParameters)
 	vTaskSuspend(NULL);
 }
 
-bool i2c_task_write_command(uint8_t *command, size_t command_size)
+bool i2c_task_write_data(uint8_t *data, size_t data_size)
 {
-	int j = 0;
-	for (int i = 0; i < command_size; i++)		// $$ bezsensowne kopiowanie
-		g_master_buff[j++] = command[i];
-
-#ifdef DEBUG_I2C // $$
-#endif
-
+	memcpy(i2c_buffor, data, data_size);
+	
 	masterXfer.direction = kI2C_Write;
-	masterXfer.dataSize = command_size;
+	masterXfer.dataSize = data_size;
 
-// PRINTF("I2C master: before write %d %x %x\r\n", j, g_master_buff[0], g_master_buff[1]); $$
+// PRINTF("I2C master: before write %d %x %x\r\n", j, i2c_buffor[0], i2c_buffor[1]);
+
 	status_t status = I2C_RTOS_Transfer(&master_rtos_handle, &masterXfer);
 	if (status != kStatus_Success)
 	{
@@ -167,7 +162,5 @@ bool i2c_task_write_command(uint8_t *command, size_t command_size)
 		return false;
 	}
 
-#ifdef DEBUG_I2C // $$
-#endif
 	return true;
 }

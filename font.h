@@ -6,9 +6,11 @@
 typedef struct
 {
 	const uint8_t RealWidth;
+	const uint8_t RealHeight;
 	const uint8_t Width;
 	const uint8_t Height;
 	const uint8_t XSpacing;
+	const uint8_t YSpacing;
 	const uint8_t Mirror;
 	const uint8_t FontWidthBytesAtEndOfLine;
 	const uint16_t* FontTable;

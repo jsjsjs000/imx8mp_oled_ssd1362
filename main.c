@@ -98,9 +98,7 @@ static void gpio_init(void)
 static void master_task(void *pvParameters)
 {
 	PRINTF("Master task started.\r\n");
-PRINTF("%d %d\r\n", pdMS_TO_TICKS(10), pdMS_TO_TICKS(2));
 
-// int last_s = 0, s = 0;
 	// uint32_t ms, cycle;
 	// uint8_t led_on;
 	while (true)
@@ -109,11 +107,6 @@ PRINTF("%d %d\r\n", pdMS_TO_TICKS(10), pdMS_TO_TICKS(2));
 		// cycle = (ms / 100) % 20;
 		// led_on = cycle == 0 || cycle == 2;
 		// GPIO_PinWrite(GPIO_LED_PORT, GPIO_LED_PIN, led_on);
-
-// if (s > last_s)
-//  PRINTF("ms %d, clock_correction %d, ms-clock_correction %d \r\n", ms, clock_correction, ms - clock_correction);
-// last_s = s;
-		// vTaskDelay(pdMS_TO_TICKS(10));
 
 		GPIO_PinWrite(GPIO_BUTTON4_PORT, GPIO_BUTTON4_PIN, 0);
 		vTaskDelay(pdMS_TO_TICKS(1));
