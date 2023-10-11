@@ -9,6 +9,7 @@ Font Font5x8 =
 	.XSpacing = 1,
 	.Mirror = 0,
 	.FontWidthBytesAtEndOfLine = 0,
+	.Colors = 2,
 	.FontTable = FontTable5x8
 };
 

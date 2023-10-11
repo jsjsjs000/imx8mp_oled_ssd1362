@@ -11,12 +11,13 @@ Font Font7x8 =
 	.YSpacing = 1,
 	.Mirror = 1,
 	.FontWidthBytesAtEndOfLine = 0,
+	.Colors = 2,
 	.FontTable = FontTable7x8
 };
 
 /// Generated in TheDotFactory.exe
 
-const uint16_t FontTable7x8[] = 
+const uint8_t FontTable7x8[] = 
 {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,		// <0x20>
 	0x18, 0x3C, 0x3C, 0x18, 0x18, 0x00, 0x18, 0x00,		// !

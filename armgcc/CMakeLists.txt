@@ -68,8 +68,8 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
 	# "${ProjDirPath}/../fonts5x8.h"
 	"${ProjDirPath}/../fonts7x8.c"
 	"${ProjDirPath}/../fonts7x8.h"
-	"${ProjDirPath}/../fonts_ubuntu_bold_10pts.c"
-	"${ProjDirPath}/../fonts_ubuntu_bold_10pts.h"
+	"${ProjDirPath}/../fonts_ubuntu_11pts.c"
+	"${ProjDirPath}/../fonts_ubuntu_11pts.h"
 	# "${ProjDirPath}/../fonts16.c"
 	# "${ProjDirPath}/../fonts16.h"
 )

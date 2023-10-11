@@ -13,7 +13,9 @@ typedef struct
 	const uint8_t YSpacing;
 	const uint8_t Mirror;
 	const uint8_t FontWidthBytesAtEndOfLine;
-	const uint16_t* FontTable;
+	const uint8_t Colors;
+	const uint8_t* FontTable;
+	const uint8_t* FontTableWidth;
 } Font;
 
 #endif /* __FONT_H */

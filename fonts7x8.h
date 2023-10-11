@@ -3,7 +3,7 @@
 
 #include "font.h"
 
-extern const uint16_t FontTable7x8[];
+extern const uint8_t FontTable7x8[];
 extern Font Font7x8;
 
 #endif /* __FONTS7x8_H */

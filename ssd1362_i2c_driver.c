@@ -279,11 +279,18 @@ void ssd1362_i2c_driver_draw_greyscale(uint16_t x1, uint16_t x2, uint16_t y1, ui
 
 static uint16_t ssd1362_i2c_driver_get_char_bytes(Font *font)
 {
-	return font->FontWidthBytesAtEndOfLine ? font->Height + 1 : font->Height;
+	if (font->Colors == 2)
+		return font->FontWidthBytesAtEndOfLine ? font->Height + 1 : font->Height;
+	if (font->Colors == 16)
+		return font->Height * font->Width / 2;
+	return 0;
 }
 
 static uint16_t ssd1362_i2c_driver_get_char_width(Font *font, char c)
 {
+	if (font->FontTableWidth != NULL)
+		return font->FontTableWidth[c - 32];
+
 	uint16_t char_bytes = ssd1362_i2c_driver_get_char_bytes(font);
 	return font->FontWidthBytesAtEndOfLine ? font->FontTable[(c + 1 - 32) * char_bytes - 1] : font->RealWidth;
 }
@@ -299,11 +306,20 @@ void ssd1362_i2c_driver_draw_char(Font *font, uint16_t x, uint16_t y, uint8_t co
 		for (int x_ = 0; x_ < char_width; x_++)
 		{
 			uint8_t pixel;
-			if (font->Mirror)
-				pixel = GET_BIT(font->FontTable[y0 + y_], x_);
-			else
-				pixel = GET_BIT(font->FontTable[y0 + y_], font->Width - 1 - x_);
-			uint8_t pixel_color = (pixel) ? color : background_color;
+			uint8_t pixel_color;
+			if (font->Colors == 2)
+			{
+				if (font->Mirror)
+					pixel = GET_BIT(font->FontTable[y0 + y_], x_);
+				else
+					pixel = GET_BIT(font->FontTable[y0 + y_], font->Width - 1 - x_);
+				pixel_color = (pixel) ? color : background_color;
+			}
+			else if (font->Colors == 16)
+			{
+				uint8_t xx = 2 - 1 - x_;
+				pixel_color = (font->FontTable[y0 + y_ * font->Width / 2 + x_ / 2] >> (2 * (xx % 2))) & 0x0f;
+			}
 			ssd1362_i2c_driver_put_pixel(x + x_, y + y_, pixel_color);
 		}
 	}
