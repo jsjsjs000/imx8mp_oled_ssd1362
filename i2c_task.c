@@ -90,9 +90,9 @@ void i2c_task_task(void *pvParameters)
 	// ssd1362_i2c_driver_update_all_screen();
 
 		/// draw some text
-	ssd1362_i2c_driver_draw_string(&Font7x8, 0, 0, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
+	ssd1362_i2c_driver_draw_string(&Font7x8, 0, 0, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżź");
 	ssd1362_i2c_driver_draw_string(&Font_Ubuntu11pts, 0, 18, 0x0f, 0,
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżźĄĆĘŁŃÓŚŻŹ");
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżźĄĆĘŁŃÓŚŻŹ 0123456789");
 	ssd1362_i2c_driver_update_all_screen();
 
 		/// draw and fast update text
