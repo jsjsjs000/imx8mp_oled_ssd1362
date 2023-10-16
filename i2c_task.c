@@ -24,6 +24,8 @@
 #include "font.h"
 #include "fonts7x8.h"
 #include "fonts_ubuntu_11pts.h"
+#include "fonts_tahoma_10pts.h"
+#include "fonts_tahoma_10pts_bold.h"
 
 static uint8_t i2c_buffor[I2C_BUFFOR_SIZE];
 static i2c_master_handle_t *i2c_master_handle;
@@ -91,8 +93,12 @@ void i2c_task_task(void *pvParameters)
 
 		/// draw some text
 	ssd1362_i2c_driver_draw_string(&Font7x8, 0, 0, 0x0f, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżź");
-	ssd1362_i2c_driver_draw_string(&Font_Ubuntu11pts, 0, 18, 0x0f, 0,
+	ssd1362_i2c_driver_draw_string(&Font_Tahoma10pts, 0, 18, 0x0f, 0,
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżźĄĆĘŁŃÓŚŻŹ 0123456789");
+	// ssd1362_i2c_driver_draw_string(&Font_Tahoma10pts_bold, 0, 18, 0x0f, 0,
+	// 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżźĄĆĘŁŃÓŚŻŹ 0123456789");
+	// ssd1362_i2c_driver_draw_string(&Font_Ubuntu11pts, 0, 18, 0x0f, 0,
+	// 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz ąćęłńóśżźĄĆĘŁŃÓŚŻŹ 0123456789");
 	ssd1362_i2c_driver_update_all_screen();
 
 		/// draw and fast update text

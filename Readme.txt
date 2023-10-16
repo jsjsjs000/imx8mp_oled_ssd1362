@@ -85,7 +85,7 @@ ssh root@192.168.30.11
 	Set TFTP server:
 sudo nano /etc/xinetd.d/tftp
 ------------------------------------------------------------
-	server_args = -s /home/p2119/Desktop/imx8mp_m7_oled_ssd1362/armgcc/debug/
+	server_args = -s /home/p2119/jarsulk-pco/projects/SOD-5/Programs/m7/imx8mp_m7_oled_ssd1362/armgcc/debug/
 ------------------------------------------------------------
 sudo service xinetd restart
 
